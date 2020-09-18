@@ -2,7 +2,7 @@
 note: -- indicates an optional argument
 
 ## SNP_peaks.R
-Finds top peaks from association test results from GENESIS saved by chromsomes in format <prefix>_chr1.RData  
+Finds top peaks from association test results from GENESIS saved by chromsomes in format "<prefix>_chr1.RData"  
 Takes arguemnts:  
 --prefix", ex. "<prefix>_chr1.RData"  
 --p_min", maximum p-value below which to search for peaks, default = 5e-4  
