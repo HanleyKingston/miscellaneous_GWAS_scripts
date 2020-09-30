@@ -4,7 +4,8 @@ library(magrittr)
 
 # read arguments
 argp <- arg_parser("Get top peaks") %>%
-  add_argument("--prefix", help = "ex. <prefix>_chr1.RData") %>%
+  add_argument("--assoc_file", help = "name of file with association results for all chromosomes. Should provide assoc_file or prefix but not both") %>%
+  add_argument("--prefix", help = "If seperate assoc fiels for each chromoosome, provide the prefix. ex. <prefix>_chr1.RData   Should provide assoc_file or prefix but not both") %>%
   add_argument("--p_min", help = "maximum p-value below which to search for peaks",
                default = 5e-4) %>%
   add_argument("--top", help = "number of SNPs peaks to save", default = NULL) %>%
@@ -14,6 +15,10 @@ argp <- arg_parser("Get top peaks") %>%
 argv <- parse_args(argp)
 
 
+#If association results are in seperate files by chromosome, combine them
+if(argv$assoc_file){
+	assoc_comb <- readRDS(argv$assoc_file)
+} elseif(argv$prefix) {
 combine_assoc_by_chr<- function(argv$prefix){
 
 	load(paste0(prefix,"_chr1.RData"))
@@ -28,9 +33,9 @@ combine_assoc_by_chr<- function(argv$prefix){
 	assoc_full <- rbind(assoc_full, assoc)
 
 assoc_comb <<- assoc_full
+} else {
+	print("association file not provided. Expects a single association file as a .rds file provided to --assoc_file or the prefix for by-chromosome association files in .RData fromat provided to --prefix")
 }
-
-
 
 get_peaks <- function(Assoc, p_min = 5e-4, top = NULL, window = 15000){
 	Assoc_highP <- Assoc[Assoc$Score.pval < p_min,]
