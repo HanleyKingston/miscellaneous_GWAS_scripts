@@ -1,3 +1,5 @@
+#Takes in assoc results from TopMed pipeline as seperate chromosome files and combines into a single file
+
 args <- commandArgs(trailingOnly = TRUE)
 
 chr <- readRDS(paste0(args[1], "_chr_1assoc.rds"))
