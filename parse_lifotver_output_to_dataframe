@@ -1,0 +1,13 @@
+liftover_range <- "(chr)(\\d+)(:)(\\d+)(-)(\\d+)"
+
+andrews36.df <- data.frame(matrix(ncol = 3, nrow = 0))
+colnames(andrews36.df) <- c("chr", "start_pos", "end_pos")
+
+
+
+for(i in 1:nrow(liftover)){
+andrews36.df[i, "chr"] <- sub(liftover_range, "\\2", liftover[i,1])
+andrews36.df[i, "start_pos"] <- sub(liftover_range, "\\4", liftover[i,1])
+andrews36.df[i, "end_pos"] <- sub(liftover_range, "\\6", liftover[i,1])
+i <- i+1
+}
