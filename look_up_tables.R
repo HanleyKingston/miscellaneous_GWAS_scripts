@@ -41,19 +41,22 @@ get_p <- function(hit_from, p_from, thresh){
 get_p(E2_noPCs, E4_noPCs_P, 5e-6)
 
 
-
 hits.list <- list("E2_noPCs" = E2_noPCs, "E2_4PCs" = E2_4PCs, "E4_noPCs" =  E4_noPCs, "E4_4PCs" = E4_4PCs, "AD" = AD, "ADxAPOE" = ADxAPOE, "AAO" = AAO, "AAOxAPOE" = AAOxAPOE)
-
 p_lookup.list <- list("E2_noPCs" = E2_noPCs_P, "E2_4PCs" = E2_4PCs_P, "E4_noPCs" =  E4_noPCs_P, "E4_4PCs" = E4_4PCs_P, "AD" = AD_P, "ADxAPOE" = ADxAPOE_P, "AAO" = AAO_P, "AAOxAPOE" = AAOxAPOE_P)
 
 i <- 1
+lookup.table <- data.frame(matrix(ncol = length(hits.list), nrow = length(p_lookup.list)))
+rownames(lookup.table) <- names(p_lookup.list)
+colnames(lookup.table) <- names(hits.list)
+
 for(hits.table in hits.list){
+     p_values.list <- c()
     j <- 1
     for(p.table in p_lookup.list){
-        print(data.frame(hit_from = names(hits.list)[i],
-                   lookup = names(p_lookup.list)[j],
-                   p_in_lookup = get_p(hits.table, p.table, 5e-6)))
+        lookup.table[j,i] <- get_p(hits.table, p.table, 5e-6)
         j <- j + 1
     }
     i <- i + 1
  }
+
+write.table
