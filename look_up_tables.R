@@ -23,9 +23,14 @@ AAO_P <- readRDS("/acct/hkings/NIAGADS/analyses/AAO/AAO_4PCs/assoc.rds")
 AAOxAPOE_P <- readRDS("/acct/hkings/NIAGADS/analyses/AAO/AAO_xE4E2_4PCs/assoc.rds")
 
 
+APOE_region <- E4_noPCs_P[E4_noPCs_P$chr == 19 & E4_noPCs_P$pos > 49500000 & E4_noPCs_P$pos < 50750000,] #This is defined very broadly
+plot(-log10(APOE_region$Score.pval)~APOE_region$pos)
+
 get_p <- function(hit_from, p_from, thresh){
     p.list <- c()
     hit_from_thresh <- hit_from[hit_from$Score.pval < thresh, ]
+    #exclude APOE region:
+    hit_from_thresh <- hit_from_thresh[!(hit_from_thresh$chr == 19 & hit_from_thresh$pos > 49500000 & hit_from_thresh$pos < 50750000),]
     if(nrow(hit_from_thresh)>0){
         for(row in 1:nrow(hit_from_thresh)){
             hit_from_row <- hit_from_thresh[row,]
@@ -38,7 +43,7 @@ get_p <- function(hit_from, p_from, thresh){
     paste(p.list, collapse = "\n")
 }
       
-get_p(E2_noPCs, E4_noPCs_P, 5e-6)
+get_p(E2_noPCs, E2_noPCs, 1.5e-7)
 
 
 hits.list <- list("E2_noPCs" = E2_noPCs, "E2_4PCs" = E2_4PCs, "E4_noPCs" =  E4_noPCs, "E4_4PCs" = E4_4PCs, "AD" = AD, "ADxAPOE" = ADxAPOE, "AAO" = AAO, "AAOxAPOE" = AAOxAPOE)
@@ -53,11 +58,14 @@ for(hits.table in hits.list){
      p_values.list <- c()
     j <- 1
     for(p.table in p_lookup.list){
-        lookup.table[j,i] <- get_p(hits.table, p.table, 5e-6)
+        lookup.table[j,i] <- get_p(hits.table, p.table, 3e-6)
         j <- j + 1
     }
     i <- i + 1
  }
 
 #Note: because there are multiple lines per cell, this isn't easy to read in a text editor. Open in excel
-write.csv(lookup.table, "/acct/hkings/NIAGADS/analyses/lookup_table_NIAGADS_APOE_AD_AAO.csv")
+write.csv(lookup.table, "/acct/hkings/NIAGADS/analyses/lookup_table_NIAGADS_APOE_AD_AAO_sig.csv")
+
+write.csv(lookup.table, "/acct/hkings/NIAGADS/analyses/lookup_table_NIAGADS_APOE_AD_AAO_sug_sig.csv")
+
