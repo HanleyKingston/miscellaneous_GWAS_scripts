@@ -29,7 +29,7 @@ get_p <- function(hit_from, p_from, thresh){
     if(nrow(hit_from_thresh)>0){
         for(row in 1:nrow(hit_from_thresh)){
             hit_from_row <- hit_from_thresh[row,]
-            p.val <- p_from[p_from$chr == hit_from_row$chr & p_from$pos == hit_from_row$pos, "Score.pval", drop = TRUE]
+            p.val <- signif(p_from[p_from$chr == hit_from_row$chr & p_from$pos == hit_from_row$pos, "Score.pval", drop = TRUE], 2)
             p.list <- append(p.list, p.val)
             }
         } else {
@@ -59,4 +59,5 @@ for(hits.table in hits.list){
     i <- i + 1
  }
 
-write.table
+#Note: because there are multiple lines per cell, this isn't easy to read in a text editor. Open in excel
+write.csv(lookup.table, "/acct/hkings/NIAGADS/analyses/lookup_table_NIAGADS_APOE_AD_AAO.csv")
