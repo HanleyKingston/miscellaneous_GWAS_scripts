@@ -1,64 +1,83 @@
-#! /usr/bin/env Rscript
+#Make it so peaks that overlap are combined (before plotting)
+
 library(argparser)
 library(magrittr)
-library(dplyr)
+library(ggplot2)
 
 
-# read arguments
-argp <- arg_parser("Get top peaks") %>%
+argp <- arg_parser("Get peak ranges") %>%
   add_argument("--assoc_file", help = "name of file with association results for all chromosomes") %>%
-  add_argument("--p_min", help = "maximum p-value below which to search for peaks",
-               default = 5e-4) %>%
-  add_argument("--window", help = "bp distance within which SNPs should be grouped into a peak", default = 100000) %>%
-  add_argument("--out_prefix", help = "file to save SNP peaks", default = "SNP_peaks")
-#  add_argument("--p_name", help = "name of column for p-value", default = "Score.pval") %>%
-#  add_argument("--pos_name", help = "name of column for position", default = "pos") %>%
-
+  add_argument("--peaks_file", help = "name of file with peaks from association results in same format as association results") %>%
+  add_argument("--out_prefix", help = "file to save SNP ranges", default = "peak_ranges") %>%
+	add_argument("--plot", help = "if TRUE, will plot each peak. Note: this automatically creates a seperate folder for plots to save to, so must run from within workign folder and don't pass a file path to out_prefix", flag = TRUE)
 
 argv <- parse_args(argp)
 
 
+assoc <- readRDS(argv$assoc_file)
 
-#If association results are in seperate files by chromosome, combine them
-assoc_comb <- readRDS(argv$assoc_file)
+#Peaks should have columns for variant.id, chr, pos, Score.pval (with names that match assoc
+peaks <- read.table(argv$peaks_file)
+
+#This function saves the plot as obejct p
+plot_the_peak <- function(Chr, Pos, color = NULL){
+	p <<- ggplot(assoc[assoc$chr == Chr & assoc$pos > Pos - 1250000 & assoc$pos < Pos + 1250000,], aes(-log10(Score.pval),pos, color = color)) +
+	geom_point() +
+	scale_x_continuous(breaks = scales::pretty_breaks(n = 20), labels  = scales::label_number_auto()) +
+	xlab("-log10(P-value)") +
+	ylab(paste(Chr, "position"))
+}
 
 
-get_peaks <- function(Assoc, p_min = 5e-4, top = NULL, window = 15000){
-	Assoc_highP <- Assoc[Assoc$Score.pval < p_min,]
+#Get ranges surrounding each peak
 
-	close_SNPs <- Assoc[1,] #Initialize dataframe to hold close-together SNPs
+#initialize ranges table
+ranges <- data.frame(matrix(ncol = 5, nrow = 0))
+colnames(ranges) <- c("variant.id", "chr", "lead_SNP_pos", "start_pos", "end_pos")
 
-	SNP_peaks <- Assoc_highP[0,] #Initialize dataframe to hold 1 peak from each close_SNPs
+i <- 1
+for(i in 1:(nrow(peaks))){
+	ranges[i,1:3] <- peaks[i, c("variant.id", "chr", "pos"), drop = TRUE]
+	#Get SNPs with close-ish magnitude
+	p_thresh <- -log10(peaks[i, "Score.pval"])/(-log10(peaks[i, "Score.pval"])/10+2)
+	assoc_range <- assoc[assoc$chr == peaks[i, "chr"] & assoc$pos > peaks[i, "pos"] - 1000000 & assoc$pos < peaks[i, "pos"] + 1000000 & assoc$Score.pval < 10^(-p_thresh),]
+	ranges[i, "start_pos"] <- min(assoc_range$pos)
+	ranges[i, "end_pos"] <- max(assoc_range$pos)
+	i <- i + 1 
+}
 
-	i <- 1
 
-	for(i in 1:(nrow(Assoc_highP)-1)){
-		if(Assoc_highP$pos[i+1] < Assoc_highP$pos[i] + window){ #if SNP(i) (already in close SNPs) is within --window of the next SNP (i+1)...
-			close_SNPs <- rbind(close_SNPs, Assoc_highP[i+1,]) #add SNP(i+1) to close_SNPs dataframe
-		} else { #If the next SNP is not close to the previous...
-			minP <- close_SNPs[close_SNPs$Score.pval == min(close_SNPs$Score.pval),] #Find the minimum P-value from the previous set of close SNPs (the peak)
-			if(nrow(minP) > 1){ #If there's more than 1 minimum (happens in p = 0)...
-				minP <- minP[ceiling(nrow(minP)/2),] #Take the middlemost value
-			}
-			SNP_peaks <- rbind(SNP_peaks, minP)
-			close_SNPs <- Assoc_highP[i+1,] #Re-initialize dataframe to hold close-together SNPs
-		}
-		i <- i+1
+
+#Combine ranges that overlap
+#not done yet
+
+
+
+write.table(ranges, paste0(argv$out_prefix, ".txt"))
+
+
+if(argv$plot == TRUE){	
+	if(!(dir.exists("peaks_zoom"))){
+		dir.create("peaks_zoom")
 	}
 
-   SNP_peaks <- SNP_peaks[order(SNP_peaks$Score.pval),]
+	#plot each peak and color range to double check that it was correctly captured
+	range_color <- c()
+	for(i in 1:nrow(ranges)){
+		range_color2 <- assoc[assoc$chr == ranges[i, "chr"] & assoc$pos >= 	ranges[i, "start_pos"]  & assoc$pos <= ranges[i, "end_pos"], "variant.id"]
+		range_color <- append(range_color, range_color2)
+		assoc$color <- ifelse(assoc$variant.id %in% range_color, "red", "black")
+		i <- i + 1
+	}
 
 
-Assoc_peaks <<- SNP_peaks %>% 
- mutate_if(is.numeric, function(x) floor(x) + signif(x - floor(x), 3))
+	for(i in 1:nrow(ranges)){
+	plot_the_peak(peaks[i, "chr"], peaks[i, "pos"], color = color)
+	ggsave(paste0("peaks_zoom/", argv$out_prefix, i, "_peak_zoom.png"), plot=p)
+	i <- i+1
+	}
 
-saveRDS(Assoc_peaks, file = paste0(argv$out_prefix, ".rds"))
-write.table(Assoc_peaks, file = paste0(argv$out_prefix, ".txt"))
 }
-	
-
-get_peaks(assoc_comb, p_min = argv$p_min, top = argv$top,window = argv$window)
-
 
 
 
