@@ -1,4 +1,4 @@
-# Run with: python parse_table.py Andrews_table1.txt
+# Run with: python parse_and_ranges_from_table_Andrews.py Andrews_table1.txt
 ## This is specific to parsing data from table 1 in this paper: References
 
 Andrews, S. J., Fulton-Howard, B., & Goate, A. (2020). Interpretation of risk loci from genome-wide association studies of alzheimer's disease. The Lancet. Neurology, 19(4), 326-335. doi:10.1016/S1474-4422(19)30435-1
