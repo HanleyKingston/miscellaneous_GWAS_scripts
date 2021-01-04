@@ -1,0 +1,8 @@
+# Chooses a random SNP by rsid and checks that chr:pos match for that rsid in the gds and annother file (SNPs)
+## Good for checking that manipulations of GDS didn't scramble variants IDs (compair before and after) or checking variant filters before applying to gds
+
+#Run multiple times
+variants_gds <- variantInfo(gds)
+
+rand <- SNPs[sample(1:nrow(SNPs),1), "variant.id"]
+SNPs[SNPs$variant.id == rand, "pos"] == variants_gds[variants_gds$variant.id == rand, "pos"] & SNPs[SNPs$variant.id == rand, "chr"] == variants_gds[variants_gds$variant.id == rand, "chr"] 
