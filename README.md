@@ -1,5 +1,7 @@
-# GWAS_scripts
+# In progress
 note: -- indicates an optional argument
+
+# interpret association results
 
 ## SNP_peaks.R
 Finds top peaks from association test results from GENESIS saved by chromsomes in format "prefix_chr1.RData"  
