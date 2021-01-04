@@ -53,9 +53,9 @@ for(i in 1:nrow(table_a)){
 				shared_SNP[i,] <- table_a[i,]
 			} else if (table_a[i, start_a] >= table_b[j, start_b] & table_a[i, start_a] <= table_b[j, end_b]) {
 				shared_SNP[i,] <- table_a[i,]
-			} else if (table_a[i, start_a] < table_b[j, start_b]  & table_a[i, end_a] > table_b[j, end_b]) {
+			} else if (table_a[i, start_a] <= table_b[j, start_b]  & table_a[i, end_a] >= table_b[j, end_b]) {
 				shared_SNP[i,] <- table_a[i,]
-			} else if (table_a[i, start_a] > table_b[j, start_b] & table_a[i, end_a] < table_b[j, end_b]) {
+			} else if (table_a[i, start_a] >= table_b[j, start_b] & table_a[i, end_a] <= table_b[j, end_b]) {
 				shared_SNP[i,] <- table_a[i,]
 			}
 		}
